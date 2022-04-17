@@ -10,7 +10,7 @@ suspend fun main() {
     val alphaClient = AlphaClient(client, jacksonObjectMapper())
 
     val ts = alphaClient.getDailyTimeSeries(
-        symbol = "AMZN",
+        symbol = "BAX",
         compact = false
     )
 
