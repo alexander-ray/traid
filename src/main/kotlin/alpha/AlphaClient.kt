@@ -6,6 +6,7 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import org.apache.logging.log4j.LogManager
 import toQueryString
 
 /**
@@ -47,6 +48,8 @@ class AlphaClient(private val client: HttpClient, private val mapper: ObjectMapp
     }
 
     private companion object {
+        private val log = LogManager.getLogger()
+
         private enum class AlphaFunction {
             TIME_SERIES_DAILY,
             OVERVIEW
@@ -77,8 +80,9 @@ class AlphaClient(private val client: HttpClient, private val mapper: ObjectMapp
                 "outputsize" to outputSize.toString(),
                 "apikey" to getAlphaVantageApiKey()
             )
-            println("https://www.alphavantage.co/query?${params.toQueryString()}")
-            return this.get("https://www.alphavantage.co/query?${params.toQueryString()}")
+            val url = "https://www.alphavantage.co/query?${params.toQueryString()}"
+            log.debug("Making request to $url")
+            return this.get(url)
         }
 
         private val FUNCTION_KEY_MAP: Map<AlphaFunction, String> = mapOf(

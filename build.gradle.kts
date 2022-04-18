@@ -22,6 +22,11 @@ dependencies {
     // Jackson
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.+")
 
+    // Log4j
+    // 2.17 should be good-to-go vulnerability-wise https://blog.gradle.org/log4j-vulnerability
+    implementation("org.apache.logging.log4j:log4j-api:2.17.0")
+    implementation("org.apache.logging.log4j:log4j-core:2.17.0")
+
     testImplementation(kotlin("test-junit5"))
 }
 tasks.withType<KotlinCompile>() {
