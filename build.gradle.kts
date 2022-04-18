@@ -21,6 +21,8 @@ dependencies {
 
     // Jackson
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.+")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.13.+")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.+") // Needed to serialize Instant
 
     // Log4j
     // 2.17 should be good-to-go vulnerability-wise https://blog.gradle.org/log4j-vulnerability

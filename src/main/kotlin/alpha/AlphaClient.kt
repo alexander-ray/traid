@@ -1,13 +1,15 @@
 package alpha
 
-import buildInstantFromLocalDate
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.csv.CsvMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import org.apache.logging.log4j.LogManager
-import toQueryString
+import utils.buildInstantFromLocalDate
+import utils.toQueryString
+import utils.writeCsvFile
 
 /**
  * Simple client class for the Alpha Vantage API.
@@ -16,16 +18,33 @@ import toQueryString
  *
  * TODO: make more general "get data" client that supports csv cacheing
  */
-class AlphaClient(private val client: HttpClient, private val mapper: ObjectMapper) {
+class AlphaClient(
+    private val client: HttpClient,
+    private val mapper: ObjectMapper,
+    private val csvMapper: CsvMapper) {
     suspend fun getDailyTimeSeries(symbol: String, compact: Boolean = true): AlphaTimeSeries {
         val result = client.getAlpha(
             function = AlphaFunction.TIME_SERIES_DAILY,
             symbol = symbol,
-            datatype = AlphaDatatype.JSON,
+            datatype = AlphaFileFormat.JSON,
             outputSize = if (compact) AlphaOutputSize.COMPACT else AlphaOutputSize.FULL
         )
 
         return result.bodyAsText().toAlphaTimeSeries(AlphaFunction.TIME_SERIES_DAILY)
+    }
+
+    suspend fun saveDailyTimeSeries(symbol: String, filePath: String, compact: Boolean = true) {
+        val result = client.getAlpha(
+            function = AlphaFunction.TIME_SERIES_DAILY,
+            symbol = symbol,
+            datatype = AlphaFileFormat.JSON,
+            outputSize = if (compact) AlphaOutputSize.COMPACT else AlphaOutputSize.FULL
+        )
+
+        val series = result.bodyAsText().toAlphaTimeSeries(AlphaFunction.TIME_SERIES_DAILY)
+
+        // This is not gonna look like we want
+        csvMapper.writeCsvFile(series.series, filePath)
     }
 
     private fun String.toAlphaTimeSeries(function: AlphaFunction): AlphaTimeSeries {
@@ -55,7 +74,7 @@ class AlphaClient(private val client: HttpClient, private val mapper: ObjectMapp
             OVERVIEW
         }
 
-        private enum class AlphaDatatype(val str: String) {
+        private enum class AlphaFileFormat(val str: String) {
             JSON("json"), CSV("csv");
 
             override fun toString(): String = str
@@ -70,7 +89,7 @@ class AlphaClient(private val client: HttpClient, private val mapper: ObjectMapp
         private suspend fun HttpClient.getAlpha(
             function: AlphaFunction = AlphaFunction.TIME_SERIES_DAILY,
             symbol: String = "AMZN",
-            datatype: AlphaDatatype = AlphaDatatype.JSON,
+            datatype: AlphaFileFormat = AlphaFileFormat.JSON,
             outputSize: AlphaOutputSize = AlphaOutputSize.COMPACT,
         ): HttpResponse {
             val params: Map<String, String> = mapOf(

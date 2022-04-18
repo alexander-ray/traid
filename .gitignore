@@ -1,4 +1,7 @@
-# All from https://gist.github.com/hughbiquitous/8c194635579dbc94aac171472c1495f5
+# Starting point was https://gist.github.com/hughbiquitous/8c194635579dbc94aac171472c1495f5
+
+# Let's keep stray test csvs out
+*.csv
 
 # From https://github.com/github/gitignore/blob/master/Gradle.gitignore
 .gradle
