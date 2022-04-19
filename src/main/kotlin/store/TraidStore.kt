@@ -29,13 +29,15 @@ class TraidStore(
             emptyList()
         }
 
-        if (points.isEmpty() || !points.last().datetime.isCacheHit()) {
+        return if (points.isEmpty() || !points.last().datetime.isCacheHit()) {
             // TODO: this api should probably just be suspend
             runBlocking {
                 database.save(alphaVantageAdapter.getDailyTimeSeries(symbol, compact = false))
             }
+            database.loadAll(symbol)
+        } else {
+            points
         }
-        return database.loadAll(symbol)
     }
 
     private companion object {
