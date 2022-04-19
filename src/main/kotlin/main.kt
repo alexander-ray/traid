@@ -1,4 +1,4 @@
-import store.adapter.alphavantage.AlphaClient
+import store.adapter.alphavantage.AlphaVantageAdapter
 import com.fasterxml.jackson.dataformat.csv.CsvMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -14,12 +14,12 @@ suspend fun main() {
         registerModule(KotlinModule.Builder().build())
         registerModule(JavaTimeModule())
     }
-    val alphaClient = AlphaClient(client, jacksonObjectMapper())
+    val alphaClient = AlphaVantageAdapter(client, jacksonObjectMapper())
     val csvStockTsDatabase = CsvStockTsDatabase("./", csvMapper)
 
-    val store = TraidStore(csvStockTsDatabase)
-    
-    println(store.getPointsForSymbol("BAX"))
+    val store = TraidStore(csvStockTsDatabase, alphaClient)
+
+    println(store.getPointsForSymbol("AMZN"))
 
     client.close()
 }

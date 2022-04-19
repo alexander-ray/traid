@@ -1,7 +1,12 @@
 package store
 
-import store.database.CsvStockTsDatabase
+import kotlinx.coroutines.runBlocking
+import org.apache.logging.log4j.LogManager
+import store.adapter.alphavantage.AlphaVantageAdapter
 import store.database.Database
+import store.database.PartitionNotFoundException
+import java.time.Duration
+import java.time.Instant
 
 /**
  * Store for accessing Traid data, abstracting away most of the retrieval and cacheing.
@@ -12,9 +17,32 @@ import store.database.Database
  * The store uses adapters to external data sources as a mechanism for bringing data locally.
  */
 class TraidStore(
-    private val database: Database<StockTsDataPoint>
-) {
+    private val database: Database<StockTsDataPoint>,
+    // TODO: this should ideally be more generic, but I haven't gotten there yet. Will probably regret later.
+    private val alphaVantageAdapter: AlphaVantageAdapter
+    ) {
     fun getPointsForSymbol(symbol: String): List<StockTsDataPoint> {
+        val points = try {
+            database.loadAll(symbol)
+        } catch (e: PartitionNotFoundException) {
+            log.debug("No existing partition found in DB for symbol $symbol.")
+            emptyList()
+        }
+
+        if (points.isEmpty() || !points.last().datetime.isCacheHit()) {
+            // TODO: this api should probably just be suspend
+            runBlocking {
+                database.save(alphaVantageAdapter.getDailyTimeSeries(symbol, compact = false))
+            }
+        }
         return database.loadAll(symbol)
+    }
+
+    private companion object {
+        private val log = LogManager.getLogger()
+
+        private val CACHE_LAG = Duration.ofDays(2)
+
+        private fun Instant.isCacheHit() = this.isAfter(Instant.now().minus(CACHE_LAG))
     }
 }

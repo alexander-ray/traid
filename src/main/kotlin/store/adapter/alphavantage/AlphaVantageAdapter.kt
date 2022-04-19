@@ -21,9 +21,13 @@ import utils.writeCsvFile
  *
  * TODO: we should be updating the Alpha models as the scope of this class shrinks
  */
-class AlphaClient(
+class AlphaVantageAdapter(
     private val client: HttpClient,
     private val mapper: ObjectMapper) {
+
+    /**
+     * TODO add error handling for bad symbol
+     */
     suspend fun getDailyTimeSeries(symbol: String, compact: Boolean = true): List<StockTsDataPoint> {
         val result = client.getAlpha(
             function = AlphaFunction.TIME_SERIES_DAILY,

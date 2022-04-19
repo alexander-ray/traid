@@ -4,6 +4,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper
 import store.StockTsDataPoint
 import utils.readCsvFile
 import utils.writeCsvFile
+import java.io.File
 
 /**
  * CSV-based database implementation for stock timeseries data.
@@ -25,16 +26,22 @@ class CsvStockTsDatabase(
             .groupBy { it.symbol }
             .forEach { (symbol, points) ->
                 val sortedPoints = points.sortedBy { it.datetime }
-                csvMapper.writeCsvFile(sortedPoints, "$fileRoot/$symbol.csv")
+                csvMapper.writeCsvFile(sortedPoints, getPathForPartition(symbol))
             }
     }
 
     /**
      * Load all points for a given partition.
      *
-     * TODO: add exception in case of partition not found
+     * TODO: should decide if the database layer gaurantees sorting.
      */
     override fun loadAll(partition: String): List<StockTsDataPoint> {
-        return csvMapper.readCsvFile("$fileRoot/$partition.csv")
+        val path = getPathForPartition(partition)
+
+        if (!File(path).exists()) throw PartitionNotFoundException("Partition $partition not found.")
+
+        return csvMapper.readCsvFile(getPathForPartition(partition))
     }
+
+    private fun getPathForPartition(partition: String) = "$fileRoot/$partition.csv"
 }
