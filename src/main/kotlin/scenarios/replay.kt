@@ -1,6 +1,6 @@
 package scenarios
 
-import alpha.AlphaTimeSeries
+import store.adapter.alphavantage.AlphaTimeSeries
 import java.math.BigDecimal
 import java.time.Instant
 

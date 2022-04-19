@@ -1,4 +1,4 @@
-package alpha
+package store.adapter.alphavantage
 
 import java.math.BigDecimal
 import java.time.Instant

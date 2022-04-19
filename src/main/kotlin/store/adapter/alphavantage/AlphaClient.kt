@@ -1,4 +1,4 @@
-package alpha
+package store.adapter.alphavantage
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.csv.CsvMapper
@@ -18,11 +18,12 @@ import utils.writeCsvFile
  * Currently, the API takes and returns normal java types and types declared in AlphaModel.
  *
  * TODO: make more general "get data" client that supports csv cacheing
+ *
+ * TODO: we should be updating the Alpha models as the scope of this class shrinks
  */
 class AlphaClient(
     private val client: HttpClient,
-    private val mapper: ObjectMapper,
-    private val csvMapper: CsvMapper) {
+    private val mapper: ObjectMapper) {
     suspend fun getDailyTimeSeries(symbol: String, compact: Boolean = true): List<StockTsDataPoint> {
         val result = client.getAlpha(
             function = AlphaFunction.TIME_SERIES_DAILY,
@@ -32,20 +33,6 @@ class AlphaClient(
         )
         val alphaTs = result.bodyAsText().toAlphaTimeSeries(AlphaFunction.TIME_SERIES_DAILY)
         return alphaTs.toStockTsDataPointList(symbol)
-    }
-
-    suspend fun saveDailyTimeSeries(symbol: String, filePath: String, compact: Boolean = true) {
-        val result = client.getAlpha(
-            function = AlphaFunction.TIME_SERIES_DAILY,
-            symbol = symbol,
-            datatype = AlphaFileFormat.JSON,
-            outputSize = if (compact) AlphaOutputSize.COMPACT else AlphaOutputSize.FULL
-        )
-
-        val series = result.bodyAsText().toAlphaTimeSeries(AlphaFunction.TIME_SERIES_DAILY)
-
-        // This is not gonna look like we want
-        csvMapper.writeCsvFile(series.series, filePath)
     }
 
     private fun String.toAlphaTimeSeries(function: AlphaFunction): AlphaTimeSeries {

@@ -1,5 +1,8 @@
 package store
 
+import store.database.CsvStockTsDatabase
+import store.database.Database
+
 /**
  * Store for accessing Traid data, abstracting away most of the retrieval and cacheing.
  *
@@ -8,6 +11,10 @@ package store
  *
  * The store uses adapters to external data sources as a mechanism for bringing data locally.
  */
-class TraidStore {
-
+class TraidStore(
+    private val database: Database<StockTsDataPoint>
+) {
+    fun getPointsForSymbol(symbol: String): List<StockTsDataPoint> {
+        return database.loadAll(symbol)
+    }
 }
