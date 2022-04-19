@@ -14,6 +14,7 @@ replacements.
 # TODOs
 * log4j properties aren't working right
 * adding unit tests (classic)
+* start working on a data catalog for the TraidStore. Such a broad concept we should probably hold off.
 * adding support for intraday data. We could also add support for more aggregated data, but the data volumes for daily data
 are small enough we may never need to
 * integrate with alpaca for paper trading

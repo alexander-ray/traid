@@ -1,5 +1,8 @@
 # Starting point was https://gist.github.com/hughbiquitous/8c194635579dbc94aac171472c1495f5
 
+# Package for scratch work, anyone can put anything in here without committing up.
+src/main/kotlin/scratch/
+
 # Let's keep stray test csvs out
 *.csv
 
