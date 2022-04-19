@@ -11,13 +11,13 @@ import store.StockTsDataPoint
 import utils.buildInstantFromLocalDate
 import utils.toQueryString
 import utils.writeCsvFile
+import java.math.BigDecimal
+import java.time.Instant
 
 /**
  * Simple client class for the Alpha Vantage API.
  *
  * Currently, the API takes and returns normal java types and types declared in AlphaModel.
- *
- * TODO: make more general "get data" client that supports csv cacheing
  *
  * TODO: we should be updating the Alpha models as the scope of this class shrinks
  */
@@ -60,23 +60,6 @@ class AlphaVantageAdapter(
 
     private companion object {
         private val log = LogManager.getLogger()
-
-        private enum class AlphaFunction {
-            TIME_SERIES_DAILY,
-            OVERVIEW
-        }
-
-        private enum class AlphaFileFormat(val str: String) {
-            JSON("json"), CSV("csv");
-
-            override fun toString(): String = str
-        }
-
-        private enum class AlphaOutputSize(val str: String) {
-            FULL("full"), COMPACT("compact");
-
-            override fun toString(): String = str
-        }
 
         private suspend fun HttpClient.getAlpha(
             function: AlphaFunction = AlphaFunction.TIME_SERIES_DAILY,
@@ -122,4 +105,42 @@ class AlphaVantageAdapter(
             )
         }
     }
+}
+
+private enum class AlphaTimeGrain {
+    DAILY
+}
+
+private data class AlphaDataPoint(
+    val open: BigDecimal,
+    val high: BigDecimal,
+    val low: BigDecimal,
+    val close: BigDecimal,
+    val volume: Long
+)
+
+// Might be better if we went with a sequence?
+private data class AlphaTimeSeries(
+    val grain: AlphaTimeGrain,
+    val series: List<Pair<Instant, AlphaDataPoint>>
+) {
+    // This probably means yes?
+    fun sortedTimeSeries(): List<Pair<Instant, AlphaDataPoint>> = series.sortedBy { it.first }
+}
+
+private enum class AlphaFunction {
+    TIME_SERIES_DAILY,
+    OVERVIEW
+}
+
+private enum class AlphaFileFormat(val str: String) {
+    JSON("json"), CSV("csv");
+
+    override fun toString(): String = str
+}
+
+private enum class AlphaOutputSize(val str: String) {
+    FULL("full"), COMPACT("compact");
+
+    override fun toString(): String = str
 }

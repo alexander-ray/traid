@@ -13,6 +13,7 @@ replacements.
 
 # TODOs
 * log4j properties aren't working right
+* depending on how beefy this gets, let's bring in dagger
 * adding unit tests (classic)
 * start working on a data catalog for the TraidStore. Such a broad concept we should probably hold off.
 * adding support for intraday data. We could also add support for more aggregated data, but the data volumes for daily data
