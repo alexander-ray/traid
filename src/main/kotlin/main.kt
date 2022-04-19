@@ -7,6 +7,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import scenarios.replayOneTimeTrade
+import store.database.CsvStockTsDatabase
 import java.time.Instant
 
 suspend fun main() {
@@ -16,12 +17,13 @@ suspend fun main() {
         registerModule(JavaTimeModule())
     }
     val alphaClient = AlphaClient(client, jacksonObjectMapper(), csvMapper)
-
-    alphaClient.saveDailyTimeSeries(
+    val csvStockTsDatabase = CsvStockTsDatabase("./", csvMapper)
+    val results = alphaClient.getDailyTimeSeries(
         symbol = "BAX",
-        filePath = "tmp.csv",
         compact = true
     )
+
+    csvStockTsDatabase.save(results)
 
     //println(replayOneTimeTrade(ts, 1.0, Instant.parse("2001-05-01T00:00:00Z"), Instant.now()))
 

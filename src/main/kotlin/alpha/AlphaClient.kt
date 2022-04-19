@@ -7,6 +7,7 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import org.apache.logging.log4j.LogManager
+import store.StockTsDataPoint
 import utils.buildInstantFromLocalDate
 import utils.toQueryString
 import utils.writeCsvFile
@@ -22,15 +23,15 @@ class AlphaClient(
     private val client: HttpClient,
     private val mapper: ObjectMapper,
     private val csvMapper: CsvMapper) {
-    suspend fun getDailyTimeSeries(symbol: String, compact: Boolean = true): AlphaTimeSeries {
+    suspend fun getDailyTimeSeries(symbol: String, compact: Boolean = true): List<StockTsDataPoint> {
         val result = client.getAlpha(
             function = AlphaFunction.TIME_SERIES_DAILY,
             symbol = symbol,
             datatype = AlphaFileFormat.JSON,
             outputSize = if (compact) AlphaOutputSize.COMPACT else AlphaOutputSize.FULL
         )
-
-        return result.bodyAsText().toAlphaTimeSeries(AlphaFunction.TIME_SERIES_DAILY)
+        val alphaTs = result.bodyAsText().toAlphaTimeSeries(AlphaFunction.TIME_SERIES_DAILY)
+        return alphaTs.toStockTsDataPointList(symbol)
     }
 
     suspend fun saveDailyTimeSeries(symbol: String, filePath: String, compact: Boolean = true) {
@@ -117,5 +118,17 @@ class AlphaClient(
 
         private val NUMBERED_KEY_REGEX = Regex("\\d\\. [A-Za-z]+\$")
         private fun String.cleanIfNumberedKey(): String = if (NUMBERED_KEY_REGEX.matches(this)) this.split(" ").last() else this
+
+        private fun AlphaTimeSeries.toStockTsDataPointList(symbol: String): List<StockTsDataPoint> = this.series.map { (dt, alphaDp) ->
+            StockTsDataPoint(
+                datetime = dt,
+                open = alphaDp.open,
+                close = alphaDp.close,
+                low = alphaDp.low,
+                high = alphaDp.high,
+                volume = alphaDp.volume,
+                symbol = symbol
+            )
+        }
     }
 }
