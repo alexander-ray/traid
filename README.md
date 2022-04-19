@@ -23,3 +23,6 @@ are small enough we may never need to
 * add in some simple analysis tools; more complex stuff probably wants to be pandas, but basic graphs and stuff are good
 * bring in broader variety of data (fundamentals, indicators, various dimensions, crypto(?), etc)
   * alpaca has a news api, which is pretty cool
+  
+# Contact
+Feel free to reach out to 1alexray@gmail.com with questions.

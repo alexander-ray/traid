@@ -33,7 +33,7 @@ class CsvStockTsDatabase(
     /**
      * Load all points for a given partition.
      *
-     * TODO: should decide if the database layer gaurantees sorting.
+     * TODO: should decide if the database layer guarantees sorting.
      */
     override fun loadAll(partition: String): List<StockTsDataPoint> {
         val path = getPathForPartition(partition)

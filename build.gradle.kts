@@ -15,6 +15,7 @@ dependencies {
     // Ktor
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("io.ktor:ktor-client-encoding:$ktor_version")
 
     // Reflect
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.20")

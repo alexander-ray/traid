@@ -1,16 +1,17 @@
 package store.adapter.alphavantage
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.csv.CsvMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import io.ktor.client.*
-import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import org.apache.logging.log4j.LogManager
 import store.StockTsDataPoint
 import utils.buildInstantFromLocalDate
-import utils.toQueryString
-import utils.writeCsvFile
+import utils.client.AlphaFileFormat
+import utils.client.AlphaFunction
+import utils.client.AlphaOutputSize
+import utils.client.AlphaVantageClient
 import java.math.BigDecimal
 import java.time.Instant
 
@@ -22,32 +23,30 @@ import java.time.Instant
  * TODO: we should be updating the Alpha models as the scope of this class shrinks
  */
 class AlphaVantageAdapter(
-    private val client: HttpClient,
+    private val client: AlphaVantageClient,
     private val mapper: ObjectMapper) {
 
     /**
      * TODO add error handling for bad symbol
      */
     suspend fun getDailyTimeSeries(symbol: String, compact: Boolean = true): List<StockTsDataPoint> {
-        val result = client.getAlpha(
+        val result = client.getAlphaDailyTimeSeries(
             function = AlphaFunction.TIME_SERIES_DAILY,
             symbol = symbol,
             datatype = AlphaFileFormat.JSON,
             outputSize = if (compact) AlphaOutputSize.COMPACT else AlphaOutputSize.FULL
         )
-        val alphaTs = result.bodyAsText().toAlphaTimeSeries(AlphaFunction.TIME_SERIES_DAILY)
+        val alphaTs = result.toAlphaTimeSeries(AlphaFunction.TIME_SERIES_DAILY)
         return alphaTs.toStockTsDataPointList(symbol)
     }
 
-    private fun String.toAlphaTimeSeries(function: AlphaFunction): AlphaTimeSeries {
-        val json = mapper.readTree(this)
-
+    private fun JsonNode.toAlphaTimeSeries(function: AlphaFunction): AlphaTimeSeries {
         val key = FUNCTION_KEY_MAP[function]
-        check(json.has(key)) { "Key $key does not exist in json." }
+        check(this.has(key)) { "Key $key does not exist in json." }
 
         return AlphaTimeSeries(
             grain = FUNCTION_GRAIN_MAP[function]!!,
-            series = json[FUNCTION_KEY_MAP[function]].fields().asSequence().map { (key, value) ->
+            series = this[FUNCTION_KEY_MAP[function]].fields().asSequence().map { (key, value) ->
                 val instant = buildInstantFromLocalDate(key, "yyyy-MM-dd", "US/Eastern")
                 // This should really be done with a custom deserializer
                 // But I don't yet know if the numbering/field names are always consistent across APIs
@@ -60,24 +59,6 @@ class AlphaVantageAdapter(
 
     private companion object {
         private val log = LogManager.getLogger()
-
-        private suspend fun HttpClient.getAlpha(
-            function: AlphaFunction = AlphaFunction.TIME_SERIES_DAILY,
-            symbol: String = "AMZN",
-            datatype: AlphaFileFormat = AlphaFileFormat.JSON,
-            outputSize: AlphaOutputSize = AlphaOutputSize.COMPACT,
-        ): HttpResponse {
-            val params: Map<String, String> = mapOf(
-                "function" to function.toString(),
-                "symbol" to symbol,
-                "datatype" to datatype.toString(),
-                "outputsize" to outputSize.toString(),
-                "apikey" to getAlphaVantageApiKey()
-            )
-            val url = "https://www.alphavantage.co/query?${params.toQueryString()}"
-            log.debug("Making request to $url")
-            return this.get(url)
-        }
 
         private val FUNCTION_KEY_MAP: Map<AlphaFunction, String> = mapOf(
             AlphaFunction.TIME_SERIES_DAILY to "Time Series (Daily)"
@@ -107,6 +88,9 @@ class AlphaVantageAdapter(
     }
 }
 
+/**
+ * TODO: remove these models and go straight from JsonObject to the external data models
+ */
 private enum class AlphaTimeGrain {
     DAILY
 }
@@ -126,21 +110,4 @@ private data class AlphaTimeSeries(
 ) {
     // This probably means yes?
     fun sortedTimeSeries(): List<Pair<Instant, AlphaDataPoint>> = series.sortedBy { it.first }
-}
-
-private enum class AlphaFunction {
-    TIME_SERIES_DAILY,
-    OVERVIEW
-}
-
-private enum class AlphaFileFormat(val str: String) {
-    JSON("json"), CSV("csv");
-
-    override fun toString(): String = str
-}
-
-private enum class AlphaOutputSize(val str: String) {
-    FULL("full"), COMPACT("compact");
-
-    override fun toString(): String = str
 }
