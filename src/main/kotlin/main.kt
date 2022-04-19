@@ -25,6 +25,8 @@ suspend fun main() {
 
     csvStockTsDatabase.save(results)
 
+    val newResults = csvStockTsDatabase.loadAll("BAX")
+    println(newResults)
     //println(replayOneTimeTrade(ts, 1.0, Instant.parse("2001-05-01T00:00:00Z"), Instant.now()))
 
     client.close()

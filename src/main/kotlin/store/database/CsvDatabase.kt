@@ -2,6 +2,7 @@ package store.database
 
 import com.fasterxml.jackson.dataformat.csv.CsvMapper
 import store.StockTsDataPoint
+import utils.readCsvFile
 import utils.writeCsvFile
 
 /**
@@ -21,13 +22,12 @@ class CsvStockTsDatabase(
         items
             .groupBy { it.symbol }
             .forEach { (symbol, points) ->
-                csvMapper.writeCsvFile(items, "$fileRoot/$symbol.csv")
+                val sortedPoints = points.sortedBy { it.datetime }
+                csvMapper.writeCsvFile(sortedPoints, "$fileRoot/$symbol.csv")
             }
     }
 
     override fun loadAll(partition: String): List<StockTsDataPoint> {
-        TODO("Not yet implemented")
+        return csvMapper.readCsvFile("$fileRoot/$partition.csv")
     }
-
-
 }
