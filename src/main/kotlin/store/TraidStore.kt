@@ -1,6 +1,5 @@
 package store
 
-import kotlinx.coroutines.runBlocking
 import org.apache.logging.log4j.LogManager
 import store.adapter.alphavantage.AlphaVantageAdapter
 import store.database.Database
@@ -21,7 +20,10 @@ class TraidStore(
     // TODO: this should ideally be more generic, but I haven't gotten there yet. Will probably regret later.
     private val alphaVantageAdapter: AlphaVantageAdapter
     ) {
-    fun getPointsForSymbol(symbol: String): List<StockTsDataPoint> {
+
+    suspend fun getMostRecentPointForSymbol(symbol: String) = getPointsForSymbol(symbol).last()
+
+    suspend fun getPointsForSymbol(symbol: String): List<StockTsDataPoint> {
         val points = try {
             database.loadAll(symbol)
         } catch (e: PartitionNotFoundException) {
@@ -30,10 +32,7 @@ class TraidStore(
         }
 
         return if (points.isEmpty() || !points.last().datetime.isCacheHit()) {
-            // TODO: this api should probably just be suspend
-            runBlocking {
-                database.save(alphaVantageAdapter.getDailyTimeSeries(symbol, compact = false))
-            }
+            database.save(alphaVantageAdapter.getDailyTimeSeries(symbol, compact = false))
             database.loadAll(symbol)
         } else {
             points
