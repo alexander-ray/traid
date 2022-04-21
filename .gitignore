@@ -5,6 +5,8 @@ src/main/kotlin/scratch/
 
 # Let's keep stray test csvs out
 *.csv
+# ...and html
+*.html
 
 # From https://github.com/github/gitignore/blob/master/Gradle.gitignore
 .gradle

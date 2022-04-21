@@ -19,16 +19,14 @@ class SECClient(
     private val mapper: ObjectMapper
     ) {
 
-    suspend fun getSecFilings(symbol: String = "AMZN", filingType: String = "10-K") {
+    suspend fun getRawSecFilings(symbol: String = "AMZN", filingType: String = "10-K"): List<String> {
         val cik = alphaVantageClient.symbolToCik(symbol)
-        println(cik)
         val submissionJson = getSecSubmissions(cik)
 
-        val accessionNumbers = compileDocumentInfo(submissionJson)
+        return compileDocumentInfo(submissionJson)
             .filter { it.filingType == filingType }
             .sortedByDescending { it.filingDate }
-
-        println(getSecFiling(cik, accessionNumbers.first().accessionNumber, accessionNumbers.first().primaryDocument))
+            .map { getSecFiling(cik, it.accessionNumber, it.primaryDocument) }
     }
 
     private suspend fun getSecFiling(cik: String, accessionNumber: String, primaryDocument: String): String {
@@ -96,49 +94,3 @@ class SECClient(
         }
     }
 }
-//
-//suspend fun HttpClient.getSecSubmissions(
-//    cik: String = "0001018724" // Amazon
-//): HttpResponse {
-//    val url = "https://data.sec.gov/submissions/CIK${cleanCik(cik)}.json"
-//
-//    log.debug("Making request to $url")
-//
-//    return this.get(url) {
-//        headers {
-//            append(HttpHeaders.AcceptEncoding, "gzip, deflate")
-//            append(HttpHeaders.UserAgent, "SECFilingAnalysisProject 1alexray@gmail.com")
-//        }
-//    }
-//}
-//
-//
-//
-//suspend fun HttpClient.getSecFilings(
-//    cik: String = "0001018724" // Amazon
-//): HttpResponse {
-//    require(cik.length in 1..10) { "CIK length must be between 1 and 10, found ${cik.length}." }
-//    // Alpha vantage API, for example, doesn't return the padded version
-//    val paddedCik = cik.padStart(10, ' ')
-//    val url = "https://data.sec.gov/submissions/CIK0001018724.json"
-//    //val url = "https://www.sec.gov/Archives/edgar/data/0001018724/000101872422000005/amzn-20211231.htm"
-//    println(url)
-//    log.debug("Making request to $url")
-//
-//    // Headers following requested headers from https://www.sec.gov/os/webmaster-faq#developers
-//    return this.get(url) {
-//        headers {
-////            append(HttpHeaders.AcceptLanguage, "en-US,en;q=0.5")
-//            //append(HttpHeaders.Accept, "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
-//            //append(HttpHeaders.Host, "www.sec.gov")
-//            append(HttpHeaders.AcceptEncoding, "gzip, deflate")
-//            append(HttpHeaders.UserAgent, "SECFilingAnalysisProject 1alexray@gmail.com")
-//            //append(HttpHeaders.UserAgent, "SEC Filing Analysis Project, alexander-ray/traid on Github.")
-//            //append(HttpHeaders.UserAgent, "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Mobile Safari/537.36")
-//        //            append("Sec-Fetch-Dest", "document")
-////            append("Sec-Fetch-Mode", "navigate")
-////            append("Sec-Fetch-Site", "none")
-//
-//        }
-//    }
-//}
