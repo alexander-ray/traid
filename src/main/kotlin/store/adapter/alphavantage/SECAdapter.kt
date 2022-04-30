@@ -1,17 +1,7 @@
 package store.adapter.alphavantage
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
-import io.ktor.client.*
-import io.ktor.client.statement.*
 import org.apache.logging.log4j.LogManager
-import store.StockTsDataPoint
-import utils.buildInstantFromLocalDate
-import utils.client.AlphaFileFormat
-import utils.client.AlphaFunction
-import utils.client.AlphaOutputSize
-import java.math.BigDecimal
-import java.time.Instant
+import utils.client.SECClient
 
 /**
  * Simple client class for the Alpha Vantage API.
@@ -21,15 +11,12 @@ import java.time.Instant
  * TODO: we should be updating the Alpha models as the scope of this class shrinks
  */
 class SECAdapter(
-    private val client: HttpClient,
-    private val mapper: ObjectMapper) {
+    private val client: SECClient) {
 
     /**
      * TODO add error handling for bad symbol
      */
-//    suspend fun getSECFilings(symbol: String, filingType: String): List<String> {
-//
-//    }
+    suspend fun getSECFilings(symbol: String, filingType: String): List<String> = client.getRawSecFilings()
 
     private companion object {
         private val log = LogManager.getLogger()

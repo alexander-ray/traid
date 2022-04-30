@@ -15,13 +15,13 @@ import java.io.File
 class CsvStockTsDatabase(
     private val fileRoot: String,
     private val csvMapper: CsvMapper
-    ): Database<StockTsDataPoint> {
+    ) {
     /**
      * Save a list of datapoints to the database. For some reason, we're supporting any number of partitions.
      *
      * Note we do not yet support upserts. This method will overwrite all partitions in [items].
      */
-    override fun save(items: List<StockTsDataPoint>) {
+    fun save(items: List<StockTsDataPoint>) {
         items
             .groupBy { it.symbol }
             .forEach { (symbol, points) ->
@@ -35,12 +35,12 @@ class CsvStockTsDatabase(
      *
      * TODO: should decide if the database layer guarantees sorting.
      */
-    override fun loadAll(partition: String): List<StockTsDataPoint> {
-        val path = getPathForPartition(partition)
+    fun loadAll(symbol: String): List<StockTsDataPoint> {
+        val path = getPathForPartition(symbol)
 
-        if (!File(path).exists()) throw PartitionNotFoundException("Partition $partition not found.")
+        if (!File(path).exists()) throw PartitionNotFoundException("Partition $symbol not found.")
 
-        return csvMapper.readCsvFile(getPathForPartition(partition))
+        return csvMapper.readCsvFile(path)
     }
 
     private fun getPathForPartition(partition: String) = "$fileRoot/$partition.csv"

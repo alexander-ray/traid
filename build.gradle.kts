@@ -30,6 +30,9 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-api:2.17.0")
     implementation("org.apache.logging.log4j:log4j-core:2.17.0")
 
+    // Jsoup
+    implementation("org.jsoup:jsoup:1.14.3")
+
     testImplementation(kotlin("test-junit5"))
 }
 tasks.withType<KotlinCompile>() {

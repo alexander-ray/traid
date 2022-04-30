@@ -2,7 +2,7 @@ package store
 
 import org.apache.logging.log4j.LogManager
 import store.adapter.alphavantage.AlphaVantageAdapter
-import store.database.Database
+import store.database.CsvStockTsDatabase
 import store.database.PartitionNotFoundException
 import java.time.Duration
 import java.time.Instant
@@ -16,7 +16,7 @@ import java.time.Instant
  * The store uses adapters to external data sources as a mechanism for bringing data locally.
  */
 class TraidStore(
-    private val database: Database<StockTsDataPoint>,
+    private val database: CsvStockTsDatabase,
     // TODO: this should ideally be more generic, but I haven't gotten there yet. Will probably regret later.
     private val alphaVantageAdapter: AlphaVantageAdapter
     ) {
